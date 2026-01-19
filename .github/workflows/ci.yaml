@@ -1,0 +1,111 @@
+name: Python Microservice CI-CD (Prod | DevSecOps)
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+env:
+  APP_NAME: python-microservice
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/python-microservice
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+
+  # ============================
+  # CI – Secure Build & Validate
+  # ============================
+  ci:
+    if: |
+      github.event_name == 'push' || 
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    name: CI - Build, Test & Secure
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # -------- Setup Python --------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff safety pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # -------- SAST (Ruff) --------
+      - name: Static Analysis & Linting (Ruff)
+        run: ruff check .
+
+      # -------- Dependency Scan (Safety) --------
+      - name: Dependency Vulnerability Scan (Safety)
+        run: safety check
+
+      # -------- Testing --------
+      - name: Run Unit Tests (Pytest)
+        run: pytest
+
+      # -------- Docker Build --------
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME:$IMAGE_TAG .
+
+      # -------- Image Scan (Trivy) --------
+      - name: Scan Container Image (Trivy)
+        uses: aquasecurity/trivy-action@0.20.0 # Updated for 2026 stability
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+        continue-on-error: false
+
+      # -------- Registry Login --------
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Push Docker Image
+        run: docker push $IMAGE_NAME:$IMAGE_TAG
+
+  # ============================
+  # CD – GitOps via Argo CD
+  # ============================
+  cd:
+    name: CD - GitOps Deploy via Argo CD
+    needs: ci
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Update Image Tag
+      run: |
+        # Ensure k8s/deployment.yml exists in your repo
+        sed -i "s|image:.*|image: $IMAGE_NAME:$IMAGE_TAG|" k8s/deployment.yml
+
+    - name: Commit & Push (GitOps)
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git pull origin main --rebase
+        git add k8s/deployment.yml
+        git commit -m "prod: deploy $APP_NAME ($IMAGE_TAG)"
+        git push origin main
