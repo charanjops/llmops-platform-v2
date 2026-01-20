@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: external-secrets-binding
+  namespace: llm
+subjects:
+  - kind: ServiceAccount
+    name: external-secrets-sa
+    namespace: llm
+roleRef:
+  kind: Role
+  name: external-secrets-role
+  apiGroup: rbac.authorization.k8s.io

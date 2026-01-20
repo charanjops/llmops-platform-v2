@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: llm-api
+  namespace: llm
 spec:
   replicas: 2
   selector:
@@ -13,7 +14,12 @@ spec:
         app: llm
     spec:
       containers:
-      - name: llm
-        image: llmops/llm:v2
-        ports:
-        - containerPort: 8000
+        - name: llm
+          image: charanjops/python-microservice:1690ffe36f083e97ae2526ad4408549ad875e0f3
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: llm-config
+            - secretRef:
+                name: llm-secrets

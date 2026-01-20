@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-secrets-sa
+  namespace: llm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::851725505989:role/external-secrets-role

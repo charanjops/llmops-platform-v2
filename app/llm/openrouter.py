@@ -1,8 +1,14 @@
 # import time
 from openai import OpenAI
 import os
-from dotenv  import load_dotenv
-load_dotenv()
+
+# Load .env only for local development
+if os.getenv("ENV", "local") == "local":
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
 
 # Initialize client for OpenRouter
 client = OpenAI(

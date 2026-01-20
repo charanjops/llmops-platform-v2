@@ -2,6 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: llm-hpa
+  namespace: llm
 spec:
   minReplicas: 2
   maxReplicas: 10

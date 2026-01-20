@@ -1,0 +1,18 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: llm-secrets
+  namespace: llm
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secrets
+    kind: SecretStore
+  target:
+    name: llm-secrets
+    creationPolicy: Owner
+  data:
+    - secretKey: OPEN_ROUTER_API_KEY
+      remoteRef:
+        key: openrouter/api-key
+        property: OPEN_ROUTER_API_KEY
