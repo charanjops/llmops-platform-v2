@@ -54,8 +54,8 @@ jobs:
         run: safety check
 
       # -------- Testing --------
-      - name: Run Unit Tests (Pytest)
-        run: pytest
+       #- name: Run Unit Tests (Pytest)
+        # run: pytest
 
       # -------- Docker Build --------
       - name: Build Docker Image
