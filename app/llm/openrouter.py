@@ -1,4 +1,4 @@
-import time
+# import time
 from openai import OpenAI
 import os
 from dotenv  import load_dotenv
@@ -11,7 +11,7 @@ client = OpenAI(
 )
 
 def call_openrouter(system_prompt, user_prompt):
-    start = time.time()
+    # start = time.time()
     
     # OpenRouter uses the standard Chat Completions API
     # You can change "anthropic/claude-2" to any model listed on openrouter.ai
@@ -29,5 +29,5 @@ def call_openrouter(system_prompt, user_prompt):
     # OpenRouter/OpenAI provides actual token counts in the metadata
     tokens = response.usage.completion_tokens
     
-    duration = time.time() - start
+    # duration = time.time() - start
     return text, tokens
