@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: llm
-          image: charanjops/python-microservice:2adb5b18ebd5d67a8623905343fea9cc05368506
+          image: charanjops/python-microservice:b44c6f0124cc59f5e5e7d14dadeadabc299e7c63
           ports:
             - containerPort: 8000
           envFrom:
