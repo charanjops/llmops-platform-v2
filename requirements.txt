@@ -2,3 +2,5 @@ fastapi
 uvicorn
 boto3
 prometheus_client
+dotenv
+openai>=0.27.0
